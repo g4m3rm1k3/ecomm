@@ -1,4 +1,5 @@
 import fs from "fs";
+import cyrpto from "crypto";
 
 class UsersRepository {
   constructor(filename) {
@@ -21,6 +22,7 @@ class UsersRepository {
     );
   }
   async create(attrs) {
+    attrs.id = this.randomID();
     const records = await this.getAll();
     records.push(attrs);
 
@@ -32,15 +34,20 @@ class UsersRepository {
       JSON.stringify(records, null, 2)
     );
   }
+  randomID() {
+    return cyrpto.randomBytes(4).toString("hex");
+  }
+  async getOne(id) {
+    const records = await this.getAll();
+    return records.find((record) => record.id === id);
+  }
 }
 
 const test = async () => {
   const repo = new UsersRepository("users.json");
 
-  await repo.create({ email: "test@test.com", password: "password" });
-
-  const users = await repo.getAll();
-  console.log(users);
+  const user = await repo.getOne("96a31038");
+  console.log(user);
 };
 
 test();
