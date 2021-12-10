@@ -1,5 +1,9 @@
 import fs from "fs";
-import cyrpto from "crypto";
+import crypto from "crypto";
+import { Script } from "vm";
+import util from "util";
+
+const scrypt = util.promisify(crypto.scrypt);
 
 class UsersRepository {
   constructor(filename) {
@@ -22,11 +26,19 @@ class UsersRepository {
     );
   }
   async create(attrs) {
-    attrs.id = this.randomID();
+    // attrs === {email: '', password: ''}
+    attrs.id = this.randomId();
+
+    const salt = crypto.randomBytes(8).toString("hex");
+    const buf = await scrypt(attrs.password, salt, 64);
+
     const records = await this.getAll();
-    records.push(attrs);
+    const record = { ...attrs, password: `${buf.toString("hex")}.${salt}` };
+    records.push(record);
 
     await this.writeAll(records);
+
+    return record;
   }
   async writeAll(records) {
     await fs.promises.writeFile(
@@ -34,8 +46,8 @@ class UsersRepository {
       JSON.stringify(records, null, 2)
     );
   }
-  randomID() {
-    return cyrpto.randomBytes(4).toString("hex");
+  randomId() {
+    return crypto.randomBytes(4).toString("hex");
   }
   async getOne(id) {
     const records = await this.getAll();
@@ -73,4 +85,4 @@ class UsersRepository {
   }
 }
 
-module.exports = new UsersRepository("users.json");
+export default new UsersRepository("users.json");
