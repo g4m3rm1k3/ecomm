@@ -59,4 +59,8 @@ router.post(
   }
 );
 
+router.get("/", (req, res) => {
+  res.redirect("/signin");
+});
+
 export default router;
