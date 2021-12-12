@@ -23,6 +23,7 @@ export default ({ content }) => {
             <div class="navbar-item">
               <div class="navbar-buttons">
                 <div class="navbar-item">
+                  <a href="/signout">SignOut</a>
                   <a href="/admin/products"><i class="fa fa-star"></i> Products</a>
                 </div>
               </div>

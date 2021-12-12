@@ -1,5 +1,5 @@
 import express from "express";
-import { check, validationResult } from "express-validator";
+import he from "./middlewares.js";
 import usersRepo from "../../repositories/users.js";
 import signupTemplate from "../../views/admin/auth/signup.js";
 import signinTemplate from "../../views/admin/auth/signin.js";
@@ -15,23 +15,27 @@ router.get("/signup", (req, res) => {
 // post-signup
 router.post(
   "/signup",
-  [stuff.requireEmail, stuff.requirePassword, stuff.requirePasswordValidation],
-  async (req, res) => {
-    const errors = validationResult(req);
+  [
+    stuff.requireEmail,
+    stuff.requirePassword,
+    stuff.requirePasswordConfirmation,
+  ],
+  he.handleErrors(signupTemplate),
 
-    if (!errors.isEmpty()) {
-      res.send(signupTemplate({ req, errors }));
-    }
+  async (req, res) => {
     const { email, password } = req.body;
     const user = await usersRepo.create({ email, password });
-    res.send("Account Created");
+
+    req.session.userId = user.id;
+
+    res.redirect("/admin/products");
   }
 );
 
 // get signout
 router.get("/signout", (req, res) => {
   req.session = null;
-  res.send("You are logged out");
+  res.redirect("/signin");
 });
 
 // get-signin
@@ -43,17 +47,15 @@ router.get("/signin", (req, res) => {
 router.post(
   "/signin",
   [stuff.requireEmailExists, stuff.requireValidPasswordForUser],
+  he.handleErrors(signinTemplate),
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.send(signinTemplate({ errors }));
-    }
     const { email } = req.body;
 
     const user = await usersRepo.getOneBy({ email });
 
-    // req.session.userId = user.id;
-    res.send("You are singed in");
+    req.session.userId = user.id;
+
+    res.redirect("/admin/products");
   }
 );
 

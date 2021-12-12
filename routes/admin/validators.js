@@ -2,6 +2,15 @@ import { check, validationResult } from "express-validator";
 import usersRepo from "../../repositories/users.js";
 
 export default {
+  requireTitle: check("title")
+    .trim()
+    .isLength({ min: 1, max: 40 })
+    .withMessage("Must be between 1 and 40 characters"),
+  requirePrice: check("price")
+    .trim()
+    .toFloat()
+    .isFloat({ min: 1 })
+    .withMessage("Must be a number greater than 1"),
   requireEmail: check("email")
     .trim()
     .normalizeEmail()
@@ -17,7 +26,7 @@ export default {
     .trim()
     .isLength({ min: 4, max: 20 })
     .withMessage("Must be between 4 and 20 characters"),
-  requirePasswordValidation: check("passwordConfirmation")
+  requirePasswordConfirmation: check("passwordConfirmation")
     .trim()
     .isLength({ min: 4, max: 20 })
     .withMessage("Must be between 4 adn 20 characters")
